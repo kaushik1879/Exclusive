@@ -1,0 +1,97 @@
+import { toast } from "react-toastify"
+import { create } from "zustand"
+
+const BASE_URL = "http://localhost:4000/api/auth"
+
+const useAuthStore = create((set) => ({
+    user: null,
+    loading: true,
+    error: null,
+
+    checkAuth: async () => {
+        set({ loading: true })
+        try {
+            const res = await fetch(`${BASE_URL}/profile`, {
+                credentials: "include",
+            })
+
+            if (!res.ok) {
+                set({ user: null, loading: false })
+                return
+            }
+
+            const data = await res.json()
+            set({ user: data.user, loading: false })
+        } catch {
+            set({ user: null, loading: false })
+        }
+    },
+
+    login: async (formData) => {
+        set({ loading: true, error: null })
+
+        try {
+            const res = await fetch(`${BASE_URL}/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify(formData),
+            })
+
+            const data = await res.json()
+
+            if (!res.ok) {
+                set({ loading: false, error: data.message })
+                return data
+            }
+
+            await useAuthStore.getState().checkAuth()
+            return data
+        } catch (err) {
+            set({ error: err.message, loading: false })
+        }
+    },
+
+    signup: async (formData) => {
+        const res = await fetch(`${BASE_URL}/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData),
+        })
+        return res.json()
+    },
+
+    logout: async () => {
+        await fetch(`${BASE_URL}/logout`, {
+            method: "POST",
+            credentials: "include",
+        })
+        toast.success("Logged Out")
+        set({ user: null })
+    },
+    updateProfile: async (formData) => {
+        try {
+            const res = await fetch(`${BASE_URL}/update-profile`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify(formData)
+            })
+
+            const data = await res.json()
+
+            if (data.success) {
+                set({ user: data.user })
+            }
+
+            return data
+
+        } catch (error) {
+            return { success: false, message: error.message }
+        }
+    },
+}))
+
+export default useAuthStore
