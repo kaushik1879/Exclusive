@@ -1,6 +1,6 @@
 import React from 'react'
 import ThinArrow from "../../../assets/icons/thin-arrow.svg"
-import Apple from "../../../assets/icons/Apple.svg"
+import Apple from "../../../assets/icons/apple.svg"
 
 const HeroSlide = ({ slide }) => {
     return (
