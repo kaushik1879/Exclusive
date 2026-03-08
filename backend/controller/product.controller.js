@@ -60,7 +60,6 @@ export const removeProduct = async (req, res) => {
         res.json({ success: false, message: error.message })
     }
 }
-
 export const listProducts = async (req, res) => {
     try {
         const {
@@ -68,40 +67,55 @@ export const listProducts = async (req, res) => {
             minPrice,
             maxPrice,
             sort,
+            search,
             page = 1,
             limit = 10
         } = req.query
 
         const filter = {}
 
+        // CATEGORY FILTER
         if (category) filter.category = category
 
+        // PRICE FILTER
         if (minPrice || maxPrice) {
             filter.price = {}
             if (minPrice) filter.price.$gte = Number(minPrice)
             if (maxPrice) filter.price.$lte = Number(maxPrice)
         }
 
-        // Sorting
+        // SEARCH FILTER
+        if (search) {
+            filter.$text = { $search: search }
+        }
+
+        // SORTING
         let sortOption = {}
         if (sort === "priceLow") sortOption.price = 1
         if (sort === "priceHigh") sortOption.price = -1
         if (sort === "latest") sortOption.date = -1
 
-        // Pagination
-
+        // PAGINATION
         const skip = (page - 1) * limit
 
-        const products = await productModel.find(filter)
+        const products = await productModel
+            .find(filter)
             .sort(sortOption)
             .skip(skip)
             .limit(Number(limit))
 
         const total = await productModel.countDocuments(filter)
 
-        return res.json({ success: true, products, total, page: Number(page), pages: Math.ceil(total / limit) })
+        return res.json({
+            success: true,
+            products,
+            total,
+            page: Number(page),
+            pages: Math.ceil(total / limit)
+        })
+
     } catch (error) {
-        console.log(error);
+        console.log(error)
         return res.json({ success: false, message: error.message })
     }
 }

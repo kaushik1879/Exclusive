@@ -13,12 +13,13 @@ const Collections = () => {
         setSort,
         loading,
         category,
-        setCategory
+        setCategory,
+        search
     } = useProductStore();
 
     useEffect(() => {
         fetchProducts();
-    }, [page, sort, category]);
+    }, [page, sort, category, search]);
 
     return (
         <section className="w-full px-4 md:px-10 py-12 bg-gray-50 min-h-screen">

@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-const BASE_URL = "http://localhost:4000"
+const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 const useOrderStore = create((set) => ({
   // common states
@@ -11,6 +11,45 @@ const useOrderStore = create((set) => ({
   // data
   orders: [],
   order: null,
+  buyNowItem: null,
+
+  // ⭐ BUY NOW API
+  buyNow: async (productId, quantity = 1) => {
+    try {
+      set({ loading: true, error: null })
+
+      const res = await fetch(`${BASE_URL}/api/order/buy-now`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({ productId, quantity })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) throw new Error(data.message)
+
+      set({
+        buyNowItem: data.item,
+        loading: false
+      })
+
+    } catch (error) {
+      console.log(error);
+
+      set({
+        error: error.message,
+        loading: false
+      })
+    }
+  },
+
+  // ⭐ CLEAR BUY NOW
+  clearBuyNowItem: () => {
+    set({ buyNowItem: null })
+  },
 
   /* =====================
      PLACE ORDER

@@ -18,6 +18,11 @@ const productSchema = new mongoose.Schema({
     bestSeller: { type: Boolean, required: true },
 })
 
+productSchema.index({
+    title: "text",
+    description: "text",
+    category: "text"
+})
 const productModel = mongoose.models.product || mongoose.model("product", productSchema)
 
 export default productModel

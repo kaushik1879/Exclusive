@@ -1,6 +1,7 @@
 import mongoose from "mongoose"
 import orderModel from "../models/orderModel.js"
 import productModel from "../models/product.model.js"
+
 export const placeOrder = async (req, res) => {
     const session = await mongoose.startSession()
     session.startTransaction()
@@ -29,8 +30,10 @@ export const placeOrder = async (req, res) => {
         const productUpdates = []
 
         for (const item of cartItems) {
-            const product = await productModel.findById(item.product).session(session)
+            console.log(item);
 
+            const product = await productModel.findById(item.product).session(session)
+            console.log(product);
             if (!product) throw new Error("Product not found")
             if (product.stock < item.quantity) {
                 throw new Error(`Only ${product.stock} left for ${product.title}`)
@@ -130,5 +133,44 @@ export const getOrderById = async (req, res) => {
             success: false,
             message: error.message,
         })
+    }
+}
+
+
+export const buyNow = async (req, res) => {
+    try {
+        const { productId, quantity } = req.body
+
+        const product = await productModel.findById(productId)
+
+        if (!product) {
+            return res.json({
+                success: false,
+                message: "Product not found"
+            })
+        }
+
+        if (product.stock < quantity) {
+            return res.json({
+                success: false,
+                message: "Not enough stock"
+            })
+        }
+
+        return res.json({
+            success: true,
+            item: {
+                product: product._id,
+                title: product.title,
+                price: product.price,
+                image: product.images[0],
+                quantity
+            }
+        })
+
+    } catch (error) {
+        console.log(error.message);
+        
+        return res.json({ success: false, message: error.message })
     }
 }

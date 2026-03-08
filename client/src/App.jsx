@@ -21,21 +21,27 @@ import useCartStore from './store/useCartStore'
 import ScrollToTop from './components/ScrollToTop'
 import Profile from './pages/Profile'
 import EditProfile from './pages/EditProfile'
+import useWishlistStore from './store/useWishlistStore'
 
 const App = () => {
   const checkAuth = useAuthStore((s) => s.checkAuth)
-  const user = useAuthStore((s) => s.user)
-  const loading = useAuthStore((s) => s.loading)
-  const clearCart = useCartStore(s => s.clearCart)
+  const fetchCart = useCartStore(state => state.fetchCart)
+  const user = useAuthStore(state => state.user)
+  const fetchWishlist = useWishlistStore((state) => state.fetchWishlist)
+
+  useEffect(() => {
+    if (user) {
+      fetchCart()
+    }
+  }, [user, fetchCart])
 
   useEffect(() => {
     checkAuth()
   }, [])
+
   useEffect(() => {
-    if (!loading && !user) {
-      clearCart()
-    }
-  }, [user, loading])
+    fetchWishlist()
+  }, [])
 
   return (
     <div className="relative w-full">

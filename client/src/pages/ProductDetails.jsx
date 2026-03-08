@@ -11,6 +11,7 @@ import {
 import useCartStore from "../store/useCartStore"
 import useProductStore from "../store/useProductStore"
 import useAuthStore from "../store/useAuthStore"
+import useOrderStore from "../store/useOrderStore"
 
 const ProductDetails = () => {
   const { productId } = useParams()
@@ -18,8 +19,7 @@ const ProductDetails = () => {
   const location = useLocation()
   const user = useAuthStore((state) => state.user)
   const addToCart = useCartStore((state) => state.addToCart)
-  const setBuyNowItem = useCartStore((state) => state.setBuyNowItem)
-
+  const buyNow = useOrderStore((state) => state.buyNow)
   const { singleProduct, fetchSingleProduct } = useProductStore()
 
   const [activeImage, setActiveImage] = useState("")
@@ -59,55 +59,27 @@ const ProductDetails = () => {
   /* ================= HANDLERS ================= */
   const handleAddToCart = () => {
     if (!user) {
-      navigate("/sign-up", {
-        state: { from: location.pathname }
-      })
+      navigate("/sign-up", { state: { from: location.pathname } })
       return
     }
+
     if (disableCTA) return
     if (quantity > singleProduct.stock) return
 
-    addToCart({
-      _id: singleProduct._id,
-      title: singleProduct.title,
-      price: singleProduct.price,
-      image: singleProduct.images[0],
-      stock: singleProduct.stock,
-      quantity,
-      selectedSize,
-      selectedColor,
-    })
+    addToCart(singleProduct._id, quantity)
   }
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     if (!user) {
-      navigate("/sign-up", {
-        state: { from: location.pathname }
-      })
+      navigate("/sign-up", { state: { from: location.pathname } })
       return
     }
+
     if (disableCTA) return
     if (quantity > singleProduct.stock) return
 
-    setBuyNowItem({
-      _id: singleProduct._id,
-      title: singleProduct.title,
-      price: singleProduct.price,
-      image: singleProduct.images[0],
-      quantity,
-      selectedSize,
-      selectedColor,
-    })
-    addToCart({
-      _id: singleProduct._id,
-      title: singleProduct.title,
-      price: singleProduct.price,
-      image: singleProduct.images[0],
-      stock: singleProduct.stock,
-      quantity,
-      selectedSize,
-      selectedColor,
-    })
+    await buyNow(singleProduct._id, quantity)
+
     navigate("/place-order")
   }
 

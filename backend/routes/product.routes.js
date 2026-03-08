@@ -9,5 +9,6 @@ productRouter.post("/add", adminAuth, upload.fields([{ name: 'image1', maxCount:
 productRouter.post("/remove", adminAuth, removeProduct)
 productRouter.get("/list", listProducts)
 productRouter.get("/single/:id", singleProduct)
+// productRouter.get("/search", searchProducts)
 
 export default productRouter

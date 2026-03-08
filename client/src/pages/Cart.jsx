@@ -1,17 +1,30 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { Trash2 } from "lucide-react"
 import useCartStore from "../store/useCartStore"
 import { useNavigate } from "react-router-dom"
-// import useAuthStore from "../store/useAuthStore"
 
 const Cart = () => {
-    const { cart, removeFromCart, increaseQty, decreaseQty } = useCartStore()
-    // const user = useAuthStore((s) => s.user)
+    const {
+        cart,
+        fetchCart,
+        removeFromCart,
+        updateQuantity
+    } = useCartStore()
+
     const navigate = useNavigate()
-    const subtotal = cart.reduce(
-        (sum, item) => sum + item.price * item.quantity,
+
+    // fetch cart on page load
+    useEffect(() => {
+        fetchCart()
+    }, [fetchCart])
+
+    const items = cart?.items || []
+    
+    const subtotal = items.reduce(
+        (sum, item) => sum + item.product.price * item.quantity,
         0
     )
+
     return (
         <section className="w-full max-w-6xl mx-auto px-4 py-12">
 
@@ -33,97 +46,96 @@ const Cart = () => {
                 </div>
             </div>
 
+            {/* EMPTY STATE */}
+            {items.length === 0 && (
+                <p className="text-center text-black/60 py-12">
+                    Your cart is empty
+                </p>
+            )}
+
             {/* CART ITEMS */}
             <div className="mt-6 space-y-4">
-                {cart.length === 0 && (
-                    <p className="text-center text-black/60 py-12">
-                        Your cart is empty
-                    </p>
-                )}
+                {items.map((item) => {
+                    const product = item.product
 
-                {cart.map((item) => (
-                    <div
-                        key={`${item._id}-${item.selectedSize}-${item.selectedColor}`}
-                        className="shadow-[0px_1px_13px_rgba(0,0,0,0.05)] rounded"
-                    >
-                        <div className="grid grid-cols-[2.5fr_1fr_1fr_1fr] items-center px-6 py-4">
+                    return (
+                        <div
+                            key={product._id}
+                            className="shadow-[0px_1px_13px_rgba(0,0,0,0.05)] rounded"
+                        >
+                            <div className="grid grid-cols-[2.5fr_1fr_1fr_1fr] items-center px-6 py-4">
 
-                            {/* PRODUCT */}
-                            <div className="flex items-center gap-4 min-w-0">
-                                <img
-                                    src={item.image}
-                                    alt={item.title}
-                                    className="w-14 h-14 object-contain shrink-0"
-                                />
-                                <div className="truncate">
-                                    <p className="text-sm font-medium truncate">
-                                        {item.title}
-                                    </p>
-                                    <p className="text-xs text-black/60">
-                                        Size: {item.selectedSize} | Color: {item.selectedColor}
-                                    </p>
+                                {/* PRODUCT */}
+                                <div className="flex items-center gap-4 min-w-0">
+                                    <img
+                                        src={product.images?.[0]}
+                                        alt={product.title}
+                                        className="w-14 h-14 object-contain shrink-0"
+                                    />
+                                    <div className="truncate">
+                                        <p className="text-sm font-medium truncate">
+                                            {product.title}
+                                        </p>
+                                    </div>
                                 </div>
+
+                                {/* PRICE */}
+                                <p className="text-center whitespace-nowrap">
+                                    ₹{product.price}
+                                </p>
+
+                                {/* QUANTITY */}
+                                <div className="flex justify-center items-center gap-2">
+                                    <button
+                                        onClick={() =>
+                                            updateQuantity(product._id, item.quantity - 1)
+                                        }
+                                        disabled={item.quantity === 1}
+                                        className="w-8 h-8 border rounded disabled:opacity-40"
+                                    >
+                                        −
+                                    </button>
+
+                                    <span className="w-8 text-center">
+                                        {item.quantity}
+                                    </span>
+
+                                    <button
+                                        onClick={() =>
+                                            updateQuantity(product._id, item.quantity + 1)
+                                        }
+                                        disabled={item.quantity >= product.stock}
+                                        className="w-8 h-8 border rounded disabled:opacity-40"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+
+                                {/* SUBTOTAL */}
+                                <div className="flex justify-end items-center gap-3 whitespace-nowrap">
+                                    <span>
+                                        ₹{product.price * item.quantity}
+                                    </span>
+
+                                    <Trash2
+                                        size={18}
+                                        onClick={() => removeFromCart(product._id)}
+                                        className="cursor-pointer text-black/60 hover:text-red-500"
+                                    />
+                                </div>
+
                             </div>
-
-                            {/* PRICE */}
-                            <p className="text-center whitespace-nowrap">
-                                ₹{item.price}
-                            </p>
-
-                            {/* QUANTITY */}
-                            <div className="flex justify-center items-center gap-2">
-                                <button
-                                    onClick={() =>
-                                        decreaseQty(item._id, item.selectedSize, item.selectedColor)
-                                    }
-                                    disabled={item.quantity === 1}
-                                    className="w-8 h-8 border rounded disabled:opacity-40"
-                                >
-                                    −
-                                </button>
-
-                                <span className="w-8 text-center">
-                                    {item.quantity}
-                                </span>
-
-                                <button
-                                    onClick={() =>
-                                        increaseQty(item._id, item.selectedSize, item.selectedColor)
-                                    }
-                                    disabled={item.quantity >= item.stock}
-                                    className={`w-8 h-8 border rounded
-                                    ${item.quantity >= item.stock
-                                            ? "opacity-40 cursor-not-allowed"
-                                            : "hover:bg-black hover:text-white"}`}
-                                >
-                                    +
-                                </button>
-                            </div>
-
-                            {/* SUBTOTAL */}
-                            <div className="flex justify-end items-center gap-3 whitespace-nowrap">
-                                <span>₹{item.price * item.quantity}</span>
-                                <Trash2
-                                    size={18}
-                                    onClick={() =>
-                                        removeFromCart(
-                                            item._id,
-                                            item.selectedSize,
-                                            item.selectedColor
-                                        )
-                                    }
-                                    className="cursor-pointer text-black/60 hover:text-red-500"
-                                />
-                            </div>
-
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
 
             {/* ACTIONS */}
             <div className="flex flex-col sm:flex-row justify-between mt-8 gap-6">
-                <button className="px-10 py-3 border rounded hover:bg-black hover:text-white transition">
+                <button
+                    onClick={() => navigate("/")}
+                    className="px-10 py-3 border rounded hover:bg-black hover:text-white transition"
+                >
                     Return To Shop
                 </button>
             </div>
@@ -156,13 +168,14 @@ const Cart = () => {
                     </div>
 
                     <button
-                        disabled={!cart.length}
+                        disabled={!items.length}
                         onClick={() => navigate("/place-order")}
-                        className="w-full h-[52px] bg-[#DB4444] text-white rounded disabled:opacity-40 cursor-pointer"
+                        className="w-full h-[52px] bg-[#DB4444] text-white rounded disabled:opacity-40"
                     >
                         Proceed to Checkout
                     </button>
                 </div>
+
             </div>
 
         </section>

@@ -10,6 +10,8 @@ import adminRouter from "./routes/admin.routes.js"
 import orderRouter from "./routes/order.routes.js"
 import addressRouter from "./routes/address.routes.js"
 import paymentRouter from "./routes/payment.routes.js"
+import cartRouter from "./routes/cart.routes.js"
+import wishlistRouter from "./routes/wishlist.routes.js"
 
 const app = express()
 const port = process.env.PORT || 4000
@@ -19,7 +21,7 @@ connectCloudinary()
 app.use(express.json())
 app.use(cookieParser());
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin:  process.env.FRONTEND_URL,
     credentials: true
 }))
 
@@ -33,5 +35,7 @@ app.use("/api/admin", adminRouter)
 app.use("/api/order", orderRouter)
 app.use("/api/addresses", addressRouter)
 app.use("/api/payment", paymentRouter)
+app.use("/api/cart", cartRouter)
+app.use("/api/wishlist", wishlistRouter)
 
 app.listen(port, () => console.log('Server started on port' + port))

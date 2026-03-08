@@ -1,7 +1,20 @@
 import { Link } from "react-router-dom"
 import { Heart, Star } from "lucide-react"
+import useWishlistStore from "../store/useWishlistStore"
 
 const ProductCard = ({ item }) => {
+
+    const toggleWishlist = useWishlistStore((state) => state.toggleWishlist)
+    const isWishlisted = useWishlistStore((state) =>
+        state.isWishlisted(item._id)
+    )
+
+    const handleWishlist = (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        toggleWishlist(item._id)
+    }
+
     return (
         <Link
             to={`/product-details/${item._id}`}
@@ -18,19 +31,24 @@ const ProductCard = ({ item }) => {
                     />
 
                     {/* DISCOUNT */}
-                    {/* {item?.flashSale && ( */}
                     <span className="absolute top-3 left-3 bg-[#DB4444] text-white text-xs px-2 py-1 rounded">
                         -{item.discount}%
                     </span>
-                    {/*  )} */}
 
                     {/* WISHLIST */}
                     <button
-                        onClick={(e) => e.preventDefault()}
-                        className="absolute top-3 right-3 w-9 h-9 bg-white border border-black/20 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                        onClick={handleWishlist}
+                        className="absolute top-3 right-3 w-9 h-9 bg-white border border-black/20 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer"
                         aria-label="Add to wishlist"
                     >
-                        <Heart size={16} />
+                        <Heart
+                            size={16}
+                            className={
+                                isWishlisted
+                                    ? "fill-red-500 stroke-red-500"
+                                    : "stroke-black"
+                            }
+                        />
                     </button>
                 </div>
 

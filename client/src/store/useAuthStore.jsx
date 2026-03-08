@@ -1,7 +1,8 @@
 import { toast } from "react-toastify"
 import { create } from "zustand"
+import useCartStore from "./useCartStore"
 
-const BASE_URL = "http://localhost:4000/api/auth"
+const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 const useAuthStore = create((set) => ({
     user: null,
@@ -11,7 +12,7 @@ const useAuthStore = create((set) => ({
     checkAuth: async () => {
         set({ loading: true })
         try {
-            const res = await fetch(`${BASE_URL}/profile`, {
+            const res = await fetch(`${BASE_URL}/api/auth/profile`, {
                 credentials: "include",
             })
 
@@ -31,7 +32,7 @@ const useAuthStore = create((set) => ({
         set({ loading: true, error: null })
 
         try {
-            const res = await fetch(`${BASE_URL}/login`, {
+            const res = await fetch(`${BASE_URL}/api/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
@@ -53,7 +54,7 @@ const useAuthStore = create((set) => ({
     },
 
     signup: async (formData) => {
-        const res = await fetch(`${BASE_URL}/register`, {
+        const res = await fetch(`${BASE_URL}/api/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formData),
@@ -67,11 +68,12 @@ const useAuthStore = create((set) => ({
             credentials: "include",
         })
         toast.success("Logged Out")
+        useCartStore.getState().clearCart()
         set({ user: null })
     },
     updateProfile: async (formData) => {
         try {
-            const res = await fetch(`${BASE_URL}/update-profile`, {
+            const res = await fetch(`${BASE_URL}/api/auth/update-profile`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"

@@ -12,7 +12,7 @@ const emptyForm = {
 }
 
 const SignUp = () => {
-    const [isLogin, setIsLogin] = useState(false)
+    const [isLogin, setIsLogin] = useState(true)
     const [form, setForm] = useState(emptyForm)
     const login = useAuthStore((s) => s.login)
     const signup = useAuthStore((s) => s.signup)

@@ -5,14 +5,17 @@ import useCartStore from "../store/useCartStore"
 import useAuthStore from "../store/useAuthStore"
 import useOrderStore from "../store/useOrderStore"
 import useAddressStore from "../store/useAddressStore"
+import Row from "../components/Row"
+import Input from "../components/Input"
 
 const PlaceOrder = () => {
     const navigate = useNavigate()
     const { addresses, fetchAddresses } = useAddressStore()
     const [selectedAddressId, setSelectedAddressId] = useState("")
-    const { cart, buyNowItem, clearCart, clearBuyNowItem } = useCartStore()
+    const { cart, clearCart } = useCartStore()
     const { user, loading: authLoading } = useAuthStore()
     const [paymentMethod, setPaymentMethod] = useState("COD")
+    const { buyNowItem, clearBuyNowItem } = useOrderStore()
     const {
         placeOrder,
         loading: orderLoading,
@@ -20,8 +23,20 @@ const PlaceOrder = () => {
         success,
         order,
     } = useOrderStore()
+    console.log(buyNowItem);
 
-    const checkoutItems = buyNowItem ? [buyNowItem] : cart
+    const fetchCart = useCartStore(state => state.fetchCart)
+    const checkoutItems = buyNowItem
+        ? [{
+            product: {
+                _id: buyNowItem.product,
+                title: buyNowItem.title,
+                price: buyNowItem.price,
+                images: [buyNowItem.image]
+            },
+            quantity: buyNowItem.quantity
+        }]
+        : cart?.items || []
 
     const [billingDetails, setBillingDetails] = useState({
         firstName: "",
@@ -36,7 +51,9 @@ const PlaceOrder = () => {
         email: "",
     })
     const [formErrors, setFormErrors] = useState({})
-
+    useEffect(() => {
+        fetchCart()
+    }, [])
     /* ---------------- AUTH GUARD ---------------- */
     useEffect(() => {
         if (!authLoading && !user) {
@@ -111,7 +128,7 @@ const PlaceOrder = () => {
     }
 
     const subtotal = checkoutItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
+        (sum, item) => sum + item.product.price * item.quantity,
         0
     )
 
@@ -123,12 +140,14 @@ const PlaceOrder = () => {
 
         // existing COD logic
         if (!validateForm()) return
+        console.log(checkoutItems);
 
         const cartItems = checkoutItems.map(item => ({
-            product: item._id,
+            product: item.product._id,
             quantity: item.quantity,
-            price: item.price,
+            price: item.product.price,
         }))
+        console.log(cartItems);
 
         placeOrder({
             billingDetails,
@@ -212,9 +231,10 @@ const PlaceOrder = () => {
 
                 if (data.success) {
                     const cartItems = checkoutItems.map(item => ({
-                        product: item._id,
+                        //  const product = item.product
+                        product: item.product._id,
                         quantity: item.quantity,
-                        price: item.price,
+                        price: item.product.price,
                     }))
 
                     placeOrder({
@@ -243,6 +263,7 @@ const PlaceOrder = () => {
             }
         }
     }, [addresses])
+
     return (
         <section className="max-w-[1170px] mx-auto px-4 py-16">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -296,25 +317,26 @@ const PlaceOrder = () => {
                     </form>
                 </div>
 
-                {/* ================= RIGHT — YOUR ORIGINAL UI ================= */}
                 <div className="space-y-6">
 
                     <div className="space-y-4">
-                        {checkoutItems.map((item) => (
-                            <div key={item._id} className="flex justify-between items-center">
+                        {checkoutItems.map((item) => {
+                            const product = item.product
+
+                            return <div key={product._id} className="flex justify-between items-center">
                                 <div className="flex items-center gap-4">
                                     <img
-                                        src={item.image}
-                                        alt=""
+                                        src={product.images?.[0]}
+                                        alt={product.title}
                                         className="w-12 h-12 object-contain"
                                     />
                                     <p>
-                                        {item.title} × {item.quantity}
+                                        {product.title} × {item.quantity}
                                     </p>
                                 </div>
-                                <span>₹{item.price * item.quantity}</span>
+                                <span>₹{product.price * item.quantity}</span>
                             </div>
-                        ))}
+                        })}
                     </div>
 
                     <hr />
@@ -357,28 +379,5 @@ const PlaceOrder = () => {
         </section>
     )
 }
-
-const Input = ({ label, name, value, onChange, error }) => (
-    <div>
-        <label className="block text-sm mb-2">{label}</label>
-        <input
-            name={name}
-            value={value}
-            onChange={onChange}
-            className={`w-full h-[52px] bg-[#F5F5F5] px-4 rounded outline-none 
-                ${error ? "border border-red-500 bg-red-50" : ""}`}
-        />
-        {error && (
-            <p className="text-red-500 text-xs mt-1">{error}</p>
-        )}
-    </div>
-)
-
-const Row = ({ label, value, bold }) => (
-    <div className={`flex justify-between ${bold ? "font-medium" : ""}`}>
-        <span>{label}</span>
-        <span>{value}</span>
-    </div>
-)
 
 export default PlaceOrder

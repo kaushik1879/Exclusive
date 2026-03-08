@@ -1,111 +1,108 @@
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
 
-const useCartStore = create(
-  persist(
-    (set, get) => ({
-      cart: [],
-      buyNowItem: null,
+const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
-      addToCart: (product) => {
-        const cart = get().cart
-        console.log(product);
+const useCartStore = create((set, get) => ({
+  cart: null,
+  loading: false,
+  error: null,
+  
+  clearCart: () => {
+    set({
+      cart: null,
+      loading: false,
+      error: null
+    })
+  },
+  // 🟢 GET CART
+  fetchCart: async () => {
+    try {
+      set({ loading: true, error: null })
 
-        const cartItem = {
-          _id: product._id,
-          title: product.title,
-          price: product.price,
-          image: product.image,
-          selectedSize: product.selectedSize,
-          selectedColor: product.selectedColor,
-          quantity: product.quantity,
-          stock: product.stock
-        }
+      const res = await fetch(`${BASE_URL}/api/cart`, {
+        method: "GET",
+        credentials: "include" // ⭐ important for cookies
+      })
 
-        const existingItem = cart.find(
-          (item) =>
-            item._id === cartItem._id &&
-            item.selectedSize === cartItem.selectedSize &&
-            item.selectedColor === cartItem.selectedColor
-        )
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message)
+      console.log(data.cart);
 
-        if (existingItem) {
-          set({
-            cart: cart.map((item) =>
-              item._id === cartItem._id &&
-                item.selectedSize === cartItem.selectedSize &&
-                item.selectedColor === cartItem.selectedColor
-                ? { ...item, quantity: item.quantity + cartItem.quantity }
-                : item
-            ),
-          })
-        } else {
-          set({
-            cart: [...cart, cartItem],
-          })
-        }
-      },
+      set({ cart: data.cart, loading: false })
 
-      removeFromCart: (_id, size, color) => {
-        set({
-          cart: get().cart.filter(
-            (item) =>
-              !(
-                item._id === _id &&
-                item.selectedSize === size &&
-                item.selectedColor === color
-              )
-          ),
-        })
-      },
-
-      increaseQty: (_id, selectedSize, selectedColor) =>
-        set((state) => ({
-          cart: state.cart.map((item) => {
-            if (
-              item._id === _id &&
-              item.selectedSize === selectedSize &&
-              item.selectedColor === selectedColor
-            ) {
-              if (item.quantity >= item.stock) return item  // ✅ LIMIT
-
-              return { ...item, quantity: item.quantity + 1 }
-            }
-            return item
-          }),
-        })),
-
-
-      decreaseQty: (_id, size, color) => {
-        set({
-          cart: get().cart
-            .map((item) =>
-              item._id === _id &&
-                item.selectedSize === size &&
-                item.selectedColor === color
-                ? { ...item, quantity: item.quantity - 1 }
-                : item
-            )
-            .filter((item) => item.quantity > 0),
-        })
-      },
-
-      clearCart: () => set({ cart: [] }),
-
-      setBuyNowItem: (item) =>
-        set(() => ({
-          buyNowItem: item,
-        })),
-
-      clearBuyNowItem: () =>
-        set(() => ({
-          buyNowItem: null,
-        })),
-    }),
-    {
-      name: "cart-storage",
+    } catch (error) {
+      set({ error: error.message, loading: false })
     }
-  )
-)
+  },
+
+  // 🟢 ADD TO CART
+  addToCart: async (productId, quantity = 1) => {
+    try {
+      set({ loading: true, error: null })
+
+      const res = await fetch(`${BASE_URL}/api/cart/add`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ productId, quantity })
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message)
+
+      await get().fetchCart()
+
+    } catch (error) {
+      console.log(error.message);
+      set({ error: error.message, loading: false })
+    }
+  },
+
+  // 🟢 UPDATE QUANTITY
+  updateQuantity: async (productId, quantity) => {
+    try {
+      set({ loading: true, error: null })
+
+      const res = await fetch(`${BASE_URL}/api/cart/update`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ productId, quantity })
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message)
+
+      await get().fetchCart()
+
+    } catch (error) {
+      set({ error: error.message, loading: false })
+    }
+  },
+
+  // 🟢 REMOVE ITEM
+  removeFromCart: async (productId) => {
+    try {
+      set({ loading: true, error: null })
+
+      const res = await fetch(`${BASE_URL}/api/cart/remove/${productId}`, {
+        method: "DELETE",
+        credentials: "include"
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message)
+
+      await get().fetchCart()
+
+    } catch (error) {
+      set({ error: error.message, loading: false })
+    }
+  }
+}))
 
 export default useCartStore

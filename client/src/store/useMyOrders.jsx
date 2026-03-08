@@ -1,6 +1,6 @@
 import { create } from "zustand"
 
-const BASE_URL = "http://localhost:4000/api/order"
+const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 const useMyOrdersStore = create((set) => ({
     loading: false,
@@ -12,7 +12,7 @@ const useMyOrdersStore = create((set) => ({
             set({ loading: true, error: null })
 
             const res = await fetch(
-                `${BASE_URL}/my-orders`,
+                `${BASE_URL}/api/order/my-orders`,
                 {
                     method: "GET",
                     credentials: "include", // cookie auth

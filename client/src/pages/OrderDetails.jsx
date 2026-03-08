@@ -2,25 +2,23 @@ import { useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import useOrderStore from "../store/useOrderStore"
 import useAuthStore from "../store/useAuthStore"
+import OrderTracking from "../components/OrderTracking"
 
 const OrderDetails = () => {
     const { id } = useParams()
     const navigate = useNavigate()
 
-    const { order, fetchOrderById, loading, error } =
-        useOrderStore()
-
+    const { order, fetchOrderById, loading, error } = useOrderStore()
     const { user, loading: authLoading } = useAuthStore()
-    console.log(order);
 
-    /* -------- AUTH GUARD -------- */
+    /* AUTH GUARD */
     useEffect(() => {
         if (!authLoading && !user) {
             navigate("/sign-up")
         }
     }, [user, authLoading, navigate])
 
-    /* -------- FETCH ORDER -------- */
+    /* FETCH ORDER */
     useEffect(() => {
         if (user && id) {
             fetchOrderById(id)
@@ -40,90 +38,136 @@ const OrderDetails = () => {
     }
 
     if (!order) return null
-
+    console.log(order.orderStatus);
+    
     return (
-        <section className="max-w-[900px] mx-auto px-4 py-16 space-y-8">
-            <h1 className="text-2xl font-medium">
-                Order #{order._id.slice(-6).toUpperCase()}
-            </h1>
+        <section className="max-w-[1000px] mx-auto px-4 py-16 space-y-10">
 
-            {/* STATUS */}
-            <div className="flex items-center gap-4">
-                <span className="text-sm text-black/60">Status:</span>
+            {/* ORDER HEADER */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-semibold">
+                        Order #{order._id.slice(-6).toUpperCase()}
+                    </h1>
+
+                    <p className="text-sm text-gray-500">
+                        Placed on {new Date(order.createdAt).toLocaleDateString()}
+                    </p>
+                </div>
+
                 <span
-                    className={`px-3 py-1 rounded-full text-sm ${getStatusColor(
-                        order.orderStatus
-                    )}`}
+                    className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(order.orderStatus)}`}
                 >
                     {order.orderStatus}
                 </span>
+                <OrderTracking status={order.orderStatus} />
             </div>
-            <div className="flex items-center gap-4">
-                <span className="text-sm text-black/60">Payment:</span>
 
-                <span className="text-sm font-medium">
-                    {order.paymentMethod === "RAZORPAY"
-                        ? "Online (Razorpay)"
-                        : "Cash on Delivery"}
-                </span>
+            {/* PAYMENT */}
+            <div className="border rounded-lg p-5 flex flex-col gap-2">
+                <p className="text-sm text-gray-500">Payment Method</p>
 
-                <span
-                    className={`px-2 py-1 rounded text-xs ${order.paymentStatus === "Paid"
+                <div className="flex items-center gap-4">
+                    <span className="font-medium">
+                        {order.paymentMethod === "RAZORPAY"
+                            ? "Online (Razorpay)"
+                            : "Cash on Delivery"}
+                    </span>
+
+                    <span
+                        className={`text-xs px-2 py-1 rounded ${order.paymentStatus === "Paid"
                             ? "bg-green-100 text-green-700"
                             : "bg-yellow-100 text-yellow-700"
-                        }`}
-                >
-                    {order.paymentStatus}
-                </span>
+                            }`}
+                    >
+                        {order.paymentStatus}
+                    </span>
+                </div>
             </div>
-            {/* ITEMS */}
-            <div className="border rounded p-4 space-y-4">
+
+            {/* ORDER ITEMS */}
+            <div className="border rounded-lg p-5 space-y-5">
+                <h2 className="text-lg font-medium">Items</h2>
+
                 {order.orderItems.map((item, index) => (
                     <div
                         key={index}
-                        className="flex justify-between items-center"
+                        className="flex justify-between items-center border-b last:border-none pb-4"
                     >
                         <div className="flex items-center gap-4">
+
                             <img
                                 src={item.image}
-                                alt=""
-                                className="w-14 h-14 object-contain"
+                                alt={item.title}
+                                className="w-16 h-16 object-contain bg-gray-50 rounded"
                             />
+
                             <div>
                                 <p className="font-medium">{item.title}</p>
-                                <p className="text-sm text-black/60">
+
+                                <p className="text-sm text-gray-500">
                                     Qty: {item.quantity}
+                                </p>
+
+                                <p className="text-sm text-gray-500">
+                                    ₹{item.price} each
                                 </p>
                             </div>
                         </div>
-                        <span>₹{item.price * item.quantity}</span>
+
+                        <span className="font-medium">
+                            ₹{item.price * item.quantity}
+                        </span>
                     </div>
                 ))}
             </div>
 
-            {/* BILLING */}
-            <div className="border rounded p-4 space-y-2">
-                <h2 className="font-medium">Billing Details</h2>
-                <p>
-                    {order.billingDetails.firstName}{" "}
-                    {order.billingDetails.lastName}
-                </p>
-                <p>{order.billingDetails.addressLine1}</p>
-                <p>{order.billingDetails.city}</p>
-                <p>{order.billingDetails.phone}</p>
-                <p>{order.billingDetails.email}</p>
+            {/* BILLING + TOTAL */}
+            <div className="grid md:grid-cols-2 gap-8">
+
+                {/* BILLING */}
+                <div className="border rounded-lg p-5 space-y-2">
+                    <h2 className="font-medium text-lg">
+                        Billing Details
+                    </h2>
+
+                    <p>
+                        {order.billingDetails.firstName}{" "}
+                        {order.billingDetails.lastName}
+                    </p>
+
+                    <p>{order.billingDetails.addressLine1}</p>
+                    <p>{order.billingDetails.city}</p>
+                    <p>{order.billingDetails.phone}</p>
+                    <p>{order.billingDetails.email}</p>
+                </div>
+
+                {/* TOTAL */}
+                <div className="border rounded-lg p-5 space-y-3">
+                    <h2 className="font-medium text-lg">Order Summary</h2>
+
+                    <div className="flex justify-between text-sm">
+                        <span>Subtotal</span>
+                        <span>₹{order.totalAmount}</span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                        <span>Shipping</span>
+                        <span>Free</span>
+                    </div>
+
+                    <div className="border-t pt-3 flex justify-between font-semibold text-lg">
+                        <span>Total</span>
+                        <span>₹{order.totalAmount}</span>
+                    </div>
+                </div>
+
             </div>
 
-            {/* TOTAL */}
-            <div className="flex justify-between font-medium text-lg">
-                <span>Total</span>
-                <span>₹{order.totalAmount}</span>
-            </div>
         </section>
     )
 }
 
-/* -------- STATUS COLORS -------- */
 const getStatusColor = (status) => {
     switch (status) {
         case "Delivered":
