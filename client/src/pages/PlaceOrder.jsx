@@ -8,6 +8,8 @@ import useAddressStore from "../store/useAddressStore"
 import Row from "../components/Row"
 import Input from "../components/Input"
 
+const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+
 const PlaceOrder = () => {
     const navigate = useNavigate()
     const { addresses, fetchAddresses } = useAddressStore()
@@ -204,7 +206,7 @@ const PlaceOrder = () => {
     const handleOnlinePayment = async () => {
         if (!validateForm()) return
 
-        const res = await fetch("http://localhost:4000/api/payment/create-order", {
+        const res = await fetch(`${BASE_URL}/api/payment/create-order`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -220,7 +222,7 @@ const PlaceOrder = () => {
             order_id: orderData.id,
 
             handler: async function (response) {
-                const verifyRes = await fetch("http://localhost:4000/api/payment/verify-payment", {
+                const verifyRes = await fetch(`${BASE_URL}/api/payment/verify-payment`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
