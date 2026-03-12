@@ -1,168 +1,107 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useState } from "react"
 import CountdownTimer from "./CountdownTimer"
 import ArrowLeft from "../assets/icons/ArrowLeft.svg"
 import ArrowRight from "../assets/icons/ArrowR.svg"
 import ProductCard from "./ProductCard"
 import useProductStore from "../store/useProductStore"
 
+import { Swiper, SwiperSlide } from "swiper/react"
+import { Navigation } from "swiper/modules"
+
 const FlashSale = () => {
-    const products = useProductStore((s) => s.products)
-    const [flashSale, setFlashSale] = useState([])
+  const products = useProductStore((s) => s.products)
+  const [flashSale, setFlashSale] = useState([])
 
-    const sliderRef = useRef(null)
-    const autoScrollRef = useRef(null)
+  useEffect(() => {
+    const flashProducts = products.filter((p) => p.flashSale)
+    setFlashSale(flashProducts)
+  }, [products])
 
-    const scrollAmount = 300
+  return (
+    <section className="w-full mx-auto px-4 py-12">
 
-    const scrollLeft = () => {
-        sliderRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" })
-    }
+      {/* HEADER */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
 
-    const scrollRight = () => {
-        sliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" })
-    }
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-4 h-10 bg-[#DB4444] rounded" />
+            <span className="text-[#DB4444] font-semibold">
+              Today’s
+            </span>
+          </div>
 
-    // DRAG SCROLL
-    const isDown = useRef(false)
-    const startX = useRef(0)
-    const scrollLeftPos = useRef(0)
+          <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+            <h2 className="text-3xl font-semibold">
+              Flash Sale
+            </h2>
+            <CountdownTimer />
+          </div>
+        </div>
 
-    const handleMouseDown = (e) => {
-        isDown.current = true
-        sliderRef.current.classList.add("cursor-grabbing")
-        startX.current = e.pageX - sliderRef.current.offsetLeft
-        scrollLeftPos.current = sliderRef.current.scrollLeft
-    }
+        {/* CONTROLS (Swiper Navigation Buttons) */}
+        <div className="flex gap-3">
+          <button className="flash-prev w-10 h-10 rounded-full bg-[#F5F5F5] flex items-center justify-center">
+            <img src={ArrowLeft} alt="Left" />
+          </button>
 
-    const handleMouseLeave = () => {
-        isDown.current = false
-        sliderRef.current.classList.remove("cursor-grabbing")
-        startAutoScroll()
-    }
+          <button className="flash-next w-10 h-10 rounded-full bg-[#F5F5F5] flex items-center justify-center">
+            <img src={ArrowRight} alt="Right" />
+          </button>
+        </div>
+      </div>
 
-    const handleMouseUp = () => {
-        isDown.current = false
-        sliderRef.current.classList.remove("cursor-grabbing")
-        startAutoScroll()
-    }
+      {/* SLIDER */}
+      <Swiper
+        modules={[Navigation]}
+        spaceBetween={20}
+        slidesPerView={5}
+        navigation={{
+          nextEl: ".flash-next",
+          prevEl: ".flash-prev",
+        }}
+        breakpoints={{
+          320: {
+            slidesPerView: 1.5,
+          },
+          480: {
+            slidesPerView: 2,
+          },
+          768: {
+            slidesPerView: 3,
+          },
+          1024: {
+            slidesPerView: 4,
+          },
+          1280: {
+            slidesPerView: 5,
+          },
+        }}
+        className="mt-8"
+      >
+        {flashSale.map((item) => (
+          <SwiperSlide key={item._id}>
+            <ProductCard item={item} />
+          </SwiperSlide>
+        ))}
+      </Swiper>
 
-    const handleMouseMove = (e) => {
-        if (!isDown.current) return
-        e.preventDefault()
-        const x = e.pageX - sliderRef.current.offsetLeft
-        const walk = (x - startX.current) * 1.5
-        sliderRef.current.scrollLeft = scrollLeftPos.current - walk
-    }
+      {/* VIEW ALL */}
+      <div className="flex justify-center mt-12">
+        <button
+          onClick={() => {
+            document
+              .getElementById("our-products")
+              ?.scrollIntoView({ behavior: "smooth" })
+          }}
+          className="bg-[#DB4444] text-white py-4 px-12 rounded hover:opacity-90 transition cursor-pointer"
+        >
+          View All Products
+        </button>
+      </div>
 
-    // FILTER FLASH SALE PRODUCTS
-    useEffect(() => {
-        const flashProducts = products.filter(p => p.flashSale)
-        setFlashSale(flashProducts)
-    }, [products])
-
-    // AUTO SCROLL
-    const startAutoScroll = () => {
-        autoScrollRef.current = setInterval(() => {
-            if (!sliderRef.current) return
-
-            sliderRef.current.scrollBy({
-                left: scrollAmount,
-                behavior: "smooth"
-            })
-
-            // infinite reset
-            if (
-                sliderRef.current.scrollLeft +
-                sliderRef.current.clientWidth >=
-                sliderRef.current.scrollWidth - 10
-            ) {
-                sliderRef.current.scrollTo({
-                    left: 0,
-                    behavior: "smooth"
-                })
-            }
-
-        }, 3000)
-    }
-
-    const stopAutoScroll = () => {
-        clearInterval(autoScrollRef.current)
-    }
-
-    useEffect(() => {
-        startAutoScroll()
-        return () => stopAutoScroll()
-    }, [])
-
-    return (
-        <section className="w-full mx-auto px-4 py-12">
-
-            {/* HEADER */}
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-
-                <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-4">
-                        <div className="w-4 h-10 bg-[#DB4444] rounded" />
-                        <span className="text-[#DB4444] font-semibold">
-                            Today’s
-                        </span>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-                        <h2 className="text-3xl font-semibold">
-                            Flash Sale
-                        </h2>
-                        <CountdownTimer />
-                    </div>
-                </div>
-
-                {/* CONTROLS */}
-                <div className="flex gap-3">
-                    <button
-                        onClick={scrollLeft}
-                        className="w-10 h-10 rounded-full bg-[#F5F5F5] flex items-center justify-center"
-                    >
-                        <img src={ArrowLeft} alt="Left" />
-                    </button>
-
-                    <button
-                        onClick={scrollRight}
-                        className="w-10 h-10 rounded-full bg-[#F5F5F5] flex items-center justify-center"
-                    >
-                        <img src={ArrowRight} alt="Right" />
-                    </button>
-                </div>
-            </div>
-
-            {/* SLIDER */}
-            <div
-                ref={sliderRef}
-                onMouseEnter={stopAutoScroll}
-                onMouseDown={handleMouseDown}
-                onMouseLeave={handleMouseLeave}
-                onMouseUp={handleMouseUp}
-                onMouseMove={handleMouseMove}
-                className="mt-8 flex gap-4 sm:gap-6 overflow-x-auto scroll-smooth scrollbar-hide cursor-grab select-none"
-            >
-                {[...flashSale, ...flashSale].map((item, index) => (
-                    <ProductCard key={index} item={item} />
-                ))}
-            </div>
-
-            {/* VIEW ALL */}
-            <div className="flex justify-center mt-12">
-                <button
-                    onClick={() => {
-                        document.getElementById("our-products")
-                            ?.scrollIntoView({ behavior: "smooth" })
-                    }}
-                    className="bg-[#DB4444] text-white py-4 px-12 rounded hover:opacity-90 transition cursor-pointer">
-                    View All Products
-                </button>
-            </div>
-
-        </section>
-    )
+    </section>
+  )
 }
 
 export default FlashSale
