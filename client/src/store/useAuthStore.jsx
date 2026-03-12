@@ -63,13 +63,24 @@ const useAuthStore = create((set) => ({
     },
 
     logout: async () => {
-        await fetch(`${BASE_URL}/api/auth/logout`, {
-            method: "POST",
-            credentials: "include"
-        })
-        toast.success("Logged Out")
-        useCartStore.getState().clearCart()
-        set({ user: null })
+        try {
+
+            const res = await fetch(`${BASE_URL}/api/auth/logout`, {
+                method: "POST",
+                credentials: "include"
+            })
+            const data = await res.json()
+
+            if (!res.ok) {
+                set({ loading: false, error: data.message })
+                return data
+            }
+            toast.success("Logged Out")
+            useCartStore.getState().clearCart()
+            set({ user: null })
+        } catch (error) {
+            set({ error: err.message, loading: false })
+        }
     },
     updateProfile: async (formData) => {
         try {
