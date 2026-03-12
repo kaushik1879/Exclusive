@@ -65,9 +65,10 @@ const useAuthStore = create((set) => ({
     logout: async () => {
         try {
 
-            const res = await fetch(`${BASE_URL}/api/auth/logout`, {
+            const res = await fetch(`${BASE_URL}/api/auth/login`, {
                 method: "POST",
-                credentials: "include"
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
             })
             const data = await res.json()
 
