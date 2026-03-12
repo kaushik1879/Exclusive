@@ -63,9 +63,9 @@ const useAuthStore = create((set) => ({
     },
 
     logout: async () => {
-        await fetch(`${BASE_URL}/logout`, {
+        await fetch(`${BASE_URL}/api/auth/logout`, {
             method: "POST",
-            credentials: "include",
+            credentials: "include"
         })
         toast.success("Logged Out")
         useCartStore.getState().clearCart()
