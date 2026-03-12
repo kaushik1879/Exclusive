@@ -1,5 +1,6 @@
 import useProductStore from '../store/useProductStore';
 import ProductCard from './ProductCard';
+import ProductCardSkeleton from './ProductSkeleton';
 
 const OurProducts = () => {
     const { products, loading, } = useProductStore()
