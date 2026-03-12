@@ -1,4 +1,5 @@
 import userModel from "../models/user.model.js";
+import cookiesOptions from "../utils/cookiesOptions.js";
 import generateToken from "../utils/generateToken.js";
 
 export const register = async (req, res) => {
@@ -65,11 +66,7 @@ export const login = async (req, res) => {
 
 export const logout = (req, res) => {
     try {
-        res.clearCookie("token", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        });
+        res.clearCookie("token", cookiesOptions);
 
         return res.json({ success: true, message: "Logged Out" });
     } catch (error) {
