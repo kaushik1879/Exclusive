@@ -10,15 +10,19 @@ const FlashSale = () => {
     const [flashSale, setFlashSale] = useState([])
 
     const sliderRef = useRef(null)
+    const autoScrollRef = useRef(null)
+
+    const scrollAmount = 300
 
     const scrollLeft = () => {
-        sliderRef.current.scrollBy({ left: -300, behavior: "smooth" })
+        sliderRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" })
     }
 
     const scrollRight = () => {
-        sliderRef.current.scrollBy({ left: 300, behavior: "smooth" })
+        sliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" })
     }
 
+    // DRAG SCROLL
     const isDown = useRef(false)
     const startX = useRef(0)
     const scrollLeftPos = useRef(0)
@@ -33,11 +37,13 @@ const FlashSale = () => {
     const handleMouseLeave = () => {
         isDown.current = false
         sliderRef.current.classList.remove("cursor-grabbing")
+        startAutoScroll()
     }
 
     const handleMouseUp = () => {
         isDown.current = false
         sliderRef.current.classList.remove("cursor-grabbing")
+        startAutoScroll()
     }
 
     const handleMouseMove = (e) => {
@@ -48,10 +54,45 @@ const FlashSale = () => {
         sliderRef.current.scrollLeft = scrollLeftPos.current - walk
     }
 
+    // FILTER FLASH SALE PRODUCTS
     useEffect(() => {
         const flashProducts = products.filter(p => p.flashSale)
         setFlashSale(flashProducts)
     }, [products])
+
+    // AUTO SCROLL
+    const startAutoScroll = () => {
+        autoScrollRef.current = setInterval(() => {
+            if (!sliderRef.current) return
+
+            sliderRef.current.scrollBy({
+                left: scrollAmount,
+                behavior: "smooth"
+            })
+
+            // infinite reset
+            if (
+                sliderRef.current.scrollLeft +
+                sliderRef.current.clientWidth >=
+                sliderRef.current.scrollWidth - 10
+            ) {
+                sliderRef.current.scrollTo({
+                    left: 0,
+                    behavior: "smooth"
+                })
+            }
+
+        }, 3000)
+    }
+
+    const stopAutoScroll = () => {
+        clearInterval(autoScrollRef.current)
+    }
+
+    useEffect(() => {
+        startAutoScroll()
+        return () => stopAutoScroll()
+    }, [])
 
     return (
         <section className="w-full mx-auto px-4 py-12">
@@ -83,6 +124,7 @@ const FlashSale = () => {
                     >
                         <img src={ArrowLeft} alt="Left" />
                     </button>
+
                     <button
                         onClick={scrollRight}
                         className="w-10 h-10 rounded-full bg-[#F5F5F5] flex items-center justify-center"
@@ -95,14 +137,15 @@ const FlashSale = () => {
             {/* SLIDER */}
             <div
                 ref={sliderRef}
+                onMouseEnter={stopAutoScroll}
                 onMouseDown={handleMouseDown}
                 onMouseLeave={handleMouseLeave}
                 onMouseUp={handleMouseUp}
                 onMouseMove={handleMouseMove}
                 className="mt-8 flex gap-4 sm:gap-6 overflow-x-auto scroll-smooth scrollbar-hide cursor-grab select-none"
             >
-                {flashSale.map((item) => (
-                    <ProductCard key={item._id} item={item} />
+                {[...flashSale, ...flashSale].map((item, index) => (
+                    <ProductCard key={index} item={item} />
                 ))}
             </div>
 
@@ -117,7 +160,8 @@ const FlashSale = () => {
                     View All Products
                 </button>
             </div>
-        </section >
+
+        </section>
     )
 }
 

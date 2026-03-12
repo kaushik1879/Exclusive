@@ -29,13 +29,13 @@ const OurProducts = () => {
             </div>
             {/* Products */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8">
-                {loading ? (
-                    <p>Loading...</p>
-                ) : (
-                    products.map((item) => (
-                        <ProductCard key={item._id} item={item} />
+                {loading
+                    ? Array.from({ length: 8 }).map((_, index) => (
+                        <ProductCardSkeleton key={index} />
                     ))
-                )}
+                    : products.map((item) => (
+                        <ProductCard key={item._id} item={item} />
+                    ))}
             </div>
 
         </section >
