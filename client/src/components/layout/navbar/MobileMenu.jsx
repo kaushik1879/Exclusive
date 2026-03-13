@@ -11,6 +11,7 @@ const MobileMenu = ({ menuOpen }) => {
         >
             <ul className="flex flex-col gap-4 px-6 py-4 bg-white shadow">
                 <li><Link to="/">Home</Link></li>
+                <li><Link to="/collections">Collections</Link></li>
                 <li><Link to="/contact">Contact</Link></li>
                 <li><Link to="/about">About</Link></li>
 
