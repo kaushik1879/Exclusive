@@ -21,13 +21,16 @@ connectCloudinary()
 app.use(express.json())
 app.use(cookieParser());
 app.use(cors({
-    origin:  process.env.FRONTEND_URL,
+    origin: process.env.FRONTEND_URL,
     credentials: true
 }))
 
 app.get("/", (req, res) => {
     res.send("API WORKING")
 })
+app.get("/ping", (req, res) => {
+    res.status(200).send("Server awake");
+});
 
 app.use("/api/auth", router)
 app.use("/api/product", productRouter)
