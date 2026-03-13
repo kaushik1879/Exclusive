@@ -1,27 +1,28 @@
 import React, { useEffect, useState } from 'react'
-import useProductStore from '../store/useProductStore';
-import ProductCard from './ProductCard';
+import useProductStore from '../store/useProductStore'
+import ProductCard from './ProductCard'
 
 const BestSellers = () => {
-    const products = useProductStore((s) => s.products);
+
+    const { products, loading } = useProductStore()
     const [bestSellers, setBestSellers] = useState([])
-    console.log(products);
 
     useEffect(() => {
         const bestProduct = products.filter((product) => product.bestSeller)
-        console.log(bestProduct);
-        
-        setBestSellers(bestProduct);
+        setBestSellers(bestProduct)
     }, [products])
 
+    const skeletonArray = Array.from({ length: 8 })
+
     return (
-        <section className="w-full mx-auto px-4 py-12" >
+        <section className="w-full mx-auto px-4 py-12">
 
             {/* HEADER */}
-            < div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6" >
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
 
                 {/* LEFT */}
-                < div className="flex flex-col gap-4 w-full lg:w-[52%]" >
+                <div className="flex flex-col gap-4 w-full lg:w-[52%]">
+
                     <div className="flex items-center gap-4">
                         <div className="w-4 h-10 bg-[#DB4444] rounded" />
                         <span className="text-[#DB4444] font-semibold">
@@ -33,30 +34,40 @@ const BestSellers = () => {
                         <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold">
                             Best Selling Products
                         </h2>
-                        {/* <CountdownTimer /> */}
                     </div>
-                </div >
 
+                </div>
 
-                <div className="flex justify-start lg:justify-end gap-3" >
+                {/* VIEW ALL */}
+                <div className="flex justify-start lg:justify-end gap-3">
                     <button
                         onClick={() => {
-                            document.getElementById("our-products")
+                            document
+                                .getElementById("our-products")
                                 ?.scrollIntoView({ behavior: "smooth" })
                         }}
-                        className="flex items-center justify-center bg-[#DB4444] py-4 px-12 gap-2.5
-                        text-[#FAFAFA] rounded hover:opacity-90 transition cursor-pointer"
+                        className="flex items-center justify-center bg-[#DB4444] py-4 px-12 gap-2.5 text-[#FAFAFA] rounded hover:opacity-90 transition cursor-pointer"
                     >
                         View All
                     </button>
-                </div >
-            </div >
-            <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8">
-                {bestSellers.map((product, index) => (
-                    <ProductCard item={product} key={index} />
-                ))}
+                </div>
+
             </div>
-        </section >
+
+            {/* PRODUCTS */}
+            <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8">
+
+                {loading
+                    ? skeletonArray.map((_, i) => (
+                        <ProductCard key={i} loading />
+                    ))
+                    : bestSellers.map((product) => (
+                        <ProductCard item={product} key={product._id} />
+                    ))}
+
+            </div>
+
+        </section>
     )
 }
 

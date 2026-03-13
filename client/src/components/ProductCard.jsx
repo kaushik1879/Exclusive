@@ -2,17 +2,48 @@ import { Link } from "react-router-dom"
 import { Heart, Star } from "lucide-react"
 import useWishlistStore from "../store/useWishlistStore"
 
-const ProductCard = ({ item }) => {
+const ProductCard = ({ item, loading }) => {
 
     const toggleWishlist = useWishlistStore((state) => state.toggleWishlist)
     const isWishlisted = useWishlistStore((state) =>
-        state.isWishlisted(item._id)
+        item ? state.isWishlisted(item._id) : false
     )
 
     const handleWishlist = (e) => {
         e.preventDefault()
         e.stopPropagation()
         toggleWishlist(item._id)
+    }
+
+    // ✅ SKELETON LOADER
+    if (loading) {
+        return (
+            <div className="min-w-[220px] shrink-0 animate-pulse">
+                <div className="border border-black/10 rounded-lg overflow-hidden bg-white">
+
+                    <div className="bg-gray-200 h-[280px]" />
+
+                    <div className="p-4 space-y-3">
+                        <div className="h-4 bg-gray-200 rounded w-3/4" />
+
+                        <div className="flex gap-3">
+                            <div className="h-4 bg-gray-200 rounded w-16" />
+                            <div className="h-4 bg-gray-200 rounded w-12" />
+                        </div>
+
+                        <div className="flex gap-1">
+                            {[...Array(5)].map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="w-4 h-4 bg-gray-200 rounded"
+                                />
+                            ))}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -39,7 +70,6 @@ const ProductCard = ({ item }) => {
                     <button
                         onClick={handleWishlist}
                         className="absolute top-3 right-3 w-9 h-9 bg-white border border-black/20 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                        aria-label="Add to wishlist"
                     >
                         <Heart
                             size={16}
@@ -89,6 +119,7 @@ const ProductCard = ({ item }) => {
                         </span>
                     </div>
                 </div>
+
             </div>
         </Link>
     )
