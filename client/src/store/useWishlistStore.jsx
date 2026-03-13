@@ -11,7 +11,7 @@ const useWishlistStore = create((set, get) => ({
             const res = await fetch(`${BASE_URL}/api/wishlist/`, {
                 method: "GET",
                 credentials: "include"
-            })
+            })  
             const data = await res.json()
             console.log(data);
             if (data.success) {

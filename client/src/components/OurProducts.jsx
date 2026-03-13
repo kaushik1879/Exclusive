@@ -1,5 +1,6 @@
 import useProductStore from '../store/useProductStore';
 import ProductCard from './ProductCard';
+import ProductCardSkeleton from './ProductSkeleton';
 
 const OurProducts = () => {
     const { products, loading, } = useProductStore()
@@ -29,13 +30,15 @@ const OurProducts = () => {
             </div>
             {/* Products */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8">
-                {loading
-                    ? Array.from({ length: 8 }).map((_, index) => (
-                        <ProductCard key={index} loading />
+                {loading ? (
+                    Array.from({ length: 8 }).map((_, index) => (
+                        <ProductCardSkeleton />
                     ))
-                    : products.map((item) => (
+                ) : (
+                    products.map((item) => (
                         <ProductCard key={item._id} item={item} />
-                    ))}
+                    ))
+                )}
             </div>
 
         </section >

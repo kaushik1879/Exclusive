@@ -7,18 +7,17 @@ import useProductStore from "../store/useProductStore"
 
 import { Swiper, SwiperSlide } from "swiper/react"
 import { Navigation, Autoplay } from "swiper/modules"
+import ProductCardSkeleton from "./ProductSkeleton"
 
 const FlashSale = () => {
-    const { products, loading } = useProductStore()
-
+    const products = useProductStore((s) => s.products)
+    const loading = useProductStore((s) => s.loading)
     const [flashSale, setFlashSale] = useState([])
 
     useEffect(() => {
         const flashProducts = products.filter((p) => p.flashSale)
         setFlashSale(flashProducts)
     }, [products])
-
-    const skeletonArray = Array.from({ length: 8 })
 
     return (
         <section className="w-full mx-auto px-4 py-12">
@@ -69,17 +68,25 @@ const FlashSale = () => {
                     disableOnInteraction: false,
                 }}
                 breakpoints={{
-                    320: { slidesPerView: 1.2 },
-                    480: { slidesPerView: 2 },
-                    768: { slidesPerView: 3 },
-                    1024: { slidesPerView: 4 },
+                    320: {
+                        slidesPerView: 1.2,
+                    },
+                    480: {
+                        slidesPerView: 2,
+                    },
+                    768: {
+                        slidesPerView: 3,
+                    },
+                    1024: {
+                        slidesPerView: 4,
+                    },
                 }}
                 className="mt-8"
             >
                 {loading
-                    ? skeletonArray.map((_, i) => (
-                        <SwiperSlide key={i}>
-                            <ProductCard loading />
+                    ? Array.from({ length: 8 }).map((_, index) => (
+                        <SwiperSlide key={index}>
+                            <ProductCardSkeleton />
                         </SwiperSlide>
                     ))
                     : flashSale.map((item) => (
